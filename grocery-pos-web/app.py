@@ -1,9 +1,13 @@
+import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from database import Database
 from models import Category, Item, Sale
 from datetime import datetime
 
-app = Flask(__name__)
+# When bundled as a .exe, main.py sets POS_TEMPLATE_FOLDER so Flask can find
+# the templates inside the PyInstaller temp directory.
+_tmpl = os.environ.get('POS_TEMPLATE_FOLDER', 'templates')
+app = Flask(__name__, template_folder=_tmpl)
 Database()
 
 @app.route('/')

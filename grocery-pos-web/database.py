@@ -1,11 +1,21 @@
+import os
 import sqlite3
 from datetime import datetime
 
+# When running as a bundled .exe, main.py sets POS_DATA_DIR to a writable
+# folder (~/Documents/NamChongPOS). Fall back to the script directory in dev.
+_data_dir = os.environ.get(
+    'POS_DATA_DIR',
+    os.path.dirname(os.path.abspath(__file__))
+)
+_DEFAULT_DB = os.path.join(_data_dir, 'grocery_store.db')
+
+
 class Database:
-    def __init__(self, db_name='grocery_store.db'):
-        self.db_name = db_name
+    def __init__(self, db_name=None):
+        self.db_name = db_name or _DEFAULT_DB
         self.init_db()
-    
+
     def get_connection(self):
         return sqlite3.connect(self.db_name)
     
