@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS — NAM CHONG MINI MARKET</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #111827;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: #f1f5f9;
+        }
+
+        /* ─── NAVBAR ─────────────────────────────────── */
+        .navbar {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(79,70,229,0.4);
+        }
+        .navbar-brand {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-brand .sub {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-weight: normal;
+        }
+        .btn-home {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 7px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-home:hover { background: rgba(255,255,255,0.25); color: white; }
+
+        /* ─── MAIN SPLIT LAYOUT ──────────────────────── */
+        .pos-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ═══════════════════════════════════════════════
+           LEFT PANEL — ORDER LIST
+        ═══════════════════════════════════════════════ */
+        .left-panel {
+            width: 56%;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            border-right: 3px solid #e2e8f0;
+        }
+
+        .cart-header {
+            background: white;
+            padding: 14px 20px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .cart-header h2 {
+            font-size: 1.2rem;
+            color: #1e293b;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge-count {
+            background: #4f46e5;
+            color: white;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Cart Table */
+        .cart-table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .cart-table thead th {
+            background: #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.78rem;
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .cart-table tbody td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+            color: #1e293b;
+            vertical-align: middle;
+        }
+        .cart-table tbody tr:hover { background: #eef2ff; }
+        .cart-table tbody tr:last-child td { border-bottom: none; }
+
+        .item-name-cell { font-weight: 600; }
+        .item-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 1px 7px;
+            border-radius: 10px;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+        .tag-manual { background: #fef3c7; color: #92400e; }
+        .tag-scan   { background: #d1fae5; color: #065f46; }
+
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .qty-btn {
+            width: 26px; height: 26px;
+            border: 1.5px solid #4f46e5;
+            background: white;
+            color: #4f46e5;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .qty-btn:hover { background: #4f46e5; color: white; }
+        .qty-val {
+            min-width: 28px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .price-col { font-weight: 700; color: #4f46e5; font-size: 1rem; }
+        .btn-remove {
+            background: none; border: none;
+            color: #ef4444; cursor: pointer;
+            font-size: 1.1rem; padding: 3px 6px;
+            border-radius: 5px;
+        }
+        .btn-remove:hover { background: #fee2e2; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        .empty-state i { font-size: 3.5rem; display: block; margin-bottom: 12px; }
+        .empty-state p { font-size: 1.05rem; }
+
+        /* Cart Footer */
+        .cart-footer {
+            background: white;
+            border-top: 2px solid #e2e8f0;
+            padding: 14px 20px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-items-info { color: #64748b; font-size: 0.9rem; }
+        .footer-total-label { font-size: 0.85rem; color: #64748b; margin-bottom: 2px; }
+        .footer-total-value { font-size: 2rem; font-weight: 800; color: #1e293b; }
+
+
+        /* ═══════════════════════════════════════════════
+           RIGHT PANEL — NUMPAD + INPUT
+        ═══════════════════════════════════════════════ */
+        .right-panel {
+            width: 44%;
+            background: #1e293b;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Input Section ── */
+        .input-section {
+            background: #273549;
+            padding: 10px 12px;
+            border-bottom: 1px solid #334155;
+            flex-shrink: 0;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 8px 6px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: #334155;
+            color: #94a3b8;
+        }
+        .mode-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+        .mode-btn i { margin-right: 4px; }
+
+        /* Barcode panel */
+        .scan-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .barcode-input {
+            flex: 1;
+            padding: 9px 13px;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            background: #111827;
+            color: white;
+            font-size: 1.05rem;
+        }
+        .barcode-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+        }
+        .barcode-input::placeholder { color: #475569; }
+
+        .barcode-status {
+            min-height: 22px;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-found { color: #4ade80; }
+        .status-notfound { color: #f87171; }
+        .status-multi { color: #fb923c; }
+
+        /* Manual panel */
+        .manual-inputs { display: flex; flex-direction: column; gap: 7px; }
+        .field-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .manual-name-input, .numpad-input {
+            width: 100%;
+            padding: 9px 13px;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            background: #111827;
+            color: white;
+            font-size: 1.05rem;
+        }
+        .manual-name-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        .manual-name-input::placeholder { color: #475569; }
+        .numpad-input {
+            cursor: pointer;
+            caret-color: transparent;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .numpad-input.np-active {
+            border-color: #f59e0b;
+            background: #1c1400;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+        }
+        .numpad-input::placeholder { color: #475569; font-weight: normal; }
+
+        /* ── Numpad Display Bar ── */
+        .np-display {
+            background: #111827;
+            margin: 8px 12px 0;
+            border-radius: 10px;
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .np-display-label {
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .np-display-value {
+            color: #f59e0b;
+            font-size: 1.6rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Numpad Grid ── */
+        .numpad-section {
+            padding: 8px 12px;
+            flex-shrink: 0;
+        }
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 7px;
+        }
+        .num-btn {
+            padding: 15px 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.4rem;
+            font-weight: 700;
+            transition: transform 0.08s, background 0.1s;
+            background: #334155;
+            color: white;
+            user-select: none;
+        }
+        .num-btn:hover { background: #4f46e5; }
+        .num-btn:active { transform: scale(0.93); }
+        .num-btn.n-del { background: #7f1d1d; color: #fca5a5; font-size: 1.2rem; }
+        .num-btn.n-del:hover { background: #dc2626; color: white; }
+        .num-btn.n-dot { font-size: 1.6rem; }
+        .num-btn.n-clear {
+            background: #1e3a5f;
+            color: #93c5fd;
+            font-size: 0.95rem;
+        }
+        .num-btn.n-clear:hover { background: #1e40af; }
+
+        /* ── Qty + Add Row ── */
+        .qty-add-row {
+            padding: 7px 12px;
+            background: #273549;
+            border-top: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .qty-label { color: #94a3b8; font-size: 0.85rem; font-weight: 600; }
+        .qty-spinner {
+            display: flex;
+            align-items: center;
+            background: #111827;
+            border-radius: 8px;
+            border: 1.5px solid #334155;
+            overflow: hidden;
+        }
+        .qty-spin-btn {
+            width: 34px; height: 34px;
+            border: none;
+            background: #334155;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .qty-spin-btn:hover { background: #4f46e5; }
+        .qty-spin-val {
+            min-width: 38px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            padding: 0 4px;
+        }
+        .btn-add {
+            flex: 1;
+            padding: 10px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-add:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+        }
+
+        /* ── Payment Section ── */
+        .payment-section {
+            padding: 8px 12px;
+            border-top: 1px solid #334155;
+            flex-shrink: 0;
+            background: #1e293b;
+        }
+        .payment-select {
+            width: 100%;
+            padding: 8px 10px;
+            background: #111827;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.95rem;
+            margin-bottom: 7px;
+        }
+        .payment-select:focus { outline: none; border-color: #4f46e5; }
+
+        .cash-calculator { }
+        .quick-btns {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 7px;
+            flex-wrap: wrap;
+        }
+        .q-btn {
+            flex: 1;
+            min-width: 44px;
+            padding: 5px 4px;
+            background: #334155;
+            color: #cbd5e1;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+        .q-btn:hover { background: #4f46e5; color: white; }
+
+        .pays-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .pays-label { color: #94a3b8; font-size: 0.85rem; }
+        .pays-input {
+            width: 140px;
+            padding: 6px 10px;
+            background: #111827;
+            border: 2px solid #334155;
+            border-radius: 7px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: right;
+            cursor: pointer;
+            caret-color: transparent;
+        }
+        .pays-input.np-active {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+        }
+        .pays-input:focus { outline: none; }
+
+        .change-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 10px;
+            border-radius: 8px;
+            background: #052e16;
+            border: 1px solid #16a34a;
+        }
+        .change-box.short { background: #450a0a; border-color: #dc2626; }
+        .change-lbl { font-size: 0.85rem; font-weight: 600; color: #4ade80; }
+        .change-val { font-size: 1.3rem; font-weight: 800; color: #4ade80; }
+        .change-box.short .change-lbl,
+        .change-box.short .change-val { color: #f87171; }
+
+        /* ── Action Buttons ── */
+        .action-row {
+            display: flex;
+            gap: 8px;
+            padding: 8px 12px 10px;
+            flex-shrink: 0;
+        }
+        .btn-checkout {
+            flex: 2;
+            padding: 14px;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+        }
+        .btn-checkout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(22,163,74,0.4);
+        }
+        .btn-clear {
+            flex: 1;
+            padding: 14px;
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-clear:hover { background: #dc2626; color: white; }
+
+        /* ─── MODALS ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 460px;
+            width: 92%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            color: #1e293b;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-box h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .receipt-store {
+            text-align: center;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+        }
+        .receipt-store-name { font-size: 1.2rem; font-weight: 800; }
+        .receipt-store-sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+        .receipt-meta { font-size: 0.85rem; margin-bottom: 14px; }
+        .receipt-meta div { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .receipt-items {
+            border-top: 2px dashed #cbd5e1;
+            border-bottom: 2px dashed #cbd5e1;
+            padding: 10px 0;
+            margin-bottom: 14px;
+        }
+        .receipt-item { margin-bottom: 8px; }
+        .receipt-item-name { font-weight: 600; font-size: 0.92rem; }
+        .receipt-item-sub {
+            display: flex;
+            justify-content: space-between;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+        .receipt-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+        .receipt-footer { text-align: center; font-size: 0.8rem; color: #64748b; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+        .modal-btn {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            border-radius: 9px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .modal-btn-print { background: #4f46e5; color: white; }
+        .modal-btn-print:hover { background: #4338ca; }
+        .modal-btn-done { background: #16a34a; color: white; }
+        .modal-btn-done:hover { background: #15803d; }
+
+        /* Print */
+        @media print {
+            @page { size: 80mm auto; margin: 5mm; }
+            body * { visibility: hidden; }
+            #receiptPrintArea, #receiptPrintArea * { visibility: visible; }
+            #receiptPrintArea {
+                position: absolute; left: 0; top: 0;
+                width: 80mm; font-family: 'Courier New', monospace;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ─── NAVBAR ─────────────────────────────────── -->
+<nav class="navbar">
+    <div class="navbar-brand">
+        <i class="bi bi-shop"></i>
+        NAM CHONG MINI MARKET
+        <span class="sub">— POS Terminal</span>
+    </div>
+    <a href="/" class="btn-home"><i class="bi bi-house"></i> Main Menu</a>
+</nav>
+
+<!-- ─── MAIN LAYOUT ──────────────────────────── -->
+<div class="pos-main">
+
+    <!-- ══════════════════════════════════
+         LEFT PANEL — ORDER LIST
+    ══════════════════════════════════ -->
+    <div class="left-panel">
+        <div class="cart-header">
+            <h2><i class="bi bi-receipt-cutoff"></i> Current Order</h2>
+            <span class="badge-count" id="badgeCount">0 items</span>
+        </div>
+
+        <div class="cart-table-wrapper">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th style="width:36px">#</th>
+                        <th>Item</th>
+                        <th style="width:110px; text-align:center">Qty</th>
+                        <th style="width:88px">Unit Price</th>
+                        <th style="width:88px">Total</th>
+                        <th style="width:38px"></th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-cart3"></i>
+                                <p>No items yet — scan a barcode or add manually</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="cart-footer">
+            <div class="footer-items-info" id="footerInfo">0 items · RM 0.00 total</div>
+            <div>
+                <div class="footer-total-label">Order Total</div>
+                <div class="footer-total-value" id="totalDisplay">RM 0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         RIGHT PANEL — NUMPAD + INPUT
+    ══════════════════════════════════ -->
+    <div class="right-panel">
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="btnBarcode" onclick="setMode('barcode')">
+                    <i class="bi bi-upc-scan"></i> Barcode Scan
+                </button>
+                <button class="mode-btn" id="btnManual" onclick="setMode('manual')">
+                    <i class="bi bi-pencil-square"></i> Manual Entry
+                </button>
+            </div>
+
+            <!-- BARCODE MODE -->
+            <div id="panelBarcode">
+                <label class="field-label"><i class="bi bi-upc"></i> Barcode / Item Name</label>
+                <input type="text" id="barcodeInput" class="barcode-input"
+                       placeholder="Scan barcode or type item name…"
+                       autocomplete="off"
+                       onkeydown="onBarcodeKey(event)"
+                       oninput="onBarcodeType(this.value)">
+                <div class="barcode-status" id="barcodeStatus"></div>
+            </div>
+
+            <!-- MANUAL MODE -->
+            <div id="panelManual" style="display:none">
+                <div class="manual-inputs">
+                    <div>
+                        <label class="field-label"><i class="bi bi-tag"></i> Item Name (optional)</label>
+                        <input type="text" id="manualName" class="manual-name-input"
+                               placeholder="e.g. Coca Cola, Roti…">
+                    </div>
+                    <div>
+                        <label class="field-label"><i class="bi bi-currency-dollar"></i> Price (RM) — use numpad below</label>
+                        <input type="text" id="manualPrice" class="numpad-input"
+                               placeholder="0.00" readonly
+                               onclick="setNpTarget('manualPrice')">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Numpad Display -->
+        <div class="np-display">
+            <span class="np-display-label" id="npLabel">—</span>
+            <span class="np-display-value" id="npValue">—</span>
+        </div>
+
+        <!-- Numpad -->
+        <div class="numpad-section">
+            <div class="numpad-grid">
+                <button class="num-btn" onclick="npPress('7')">7</button>
+                <button class="num-btn" onclick="npPress('8')">8</button>
+                <button class="num-btn" onclick="npPress('9')">9</button>
+
+                <button class="num-btn" onclick="npPress('4')">4</button>
+                <button class="num-btn" onclick="npPress('5')">5</button>
+                <button class="num-btn" onclick="npPress('6')">6</button>
+
+                <button class="num-btn" onclick="npPress('1')">1</button>
+                <button class="num-btn" onclick="npPress('2')">2</button>
+                <button class="num-btn" onclick="npPress('3')">3</button>
+
+                <button class="num-btn n-dot" onclick="npPress('.')">.</button>
+                <button class="num-btn" onclick="npPress('0')">0</button>
+                <button class="num-btn n-del" onclick="npBack()">⌫</button>
+
+                <button class="num-btn n-clear" style="grid-column: span 3" onclick="npClear()">
+                    CLEAR INPUT
+                </button>
+            </div>
+        </div>
+
+        <!-- Qty + Add -->
+        <div class="qty-add-row">
+            <span class="qty-label">QTY:</span>
+            <div class="qty-spinner">
+                <button class="qty-spin-btn" onclick="adjQty(-1)">−</button>
+                <span class="qty-spin-val" id="qtyVal">1</span>
+                <button class="qty-spin-btn" onclick="adjQty(1)">+</button>
+            </div>
+            <button class="btn-add" onclick="addItem()">
+                <i class="bi bi-plus-circle-fill"></i> ADD TO ORDER
+            </button>
+        </div>
+
+        <!-- Payment -->
+        <div class="payment-section">
+            <select class="payment-select" id="payMethod" onchange="onPayChange()">
+                <option value="cash">💵 Cash</option>
+                <option value="card">💳 Card / TnG</option>
+                <option value="qr">📱 QR Pay (DuitNow)</option>
+            </select>
+
+            <div id="cashCalc" class="cash-calculator">
+                <div class="quick-btns">
+                    <button class="q-btn" onclick="quickPay(5)">RM5</button>
+                    <button class="q-btn" onclick="quickPay(10)">RM10</button>
+                    <button class="q-btn" onclick="quickPay(20)">RM20</button>
+                    <button class="q-btn" onclick="quickPay(50)">RM50</button>
+                    <button class="q-btn" onclick="quickPay(100)">RM100</button>
+                </div>
+                <div class="pays-row">
+                    <span class="pays-label">Customer Pays (RM):</span>
+                    <input type="text" id="customerPays" class="pays-input"
+                           placeholder="0.00" readonly
+                           onclick="setNpTarget('customerPays')">
+                </div>
+                <div id="changeBox" class="change-box" style="display:none">
+                    <span class="change-lbl">Change 找零:</span>
+                    <span class="change-val" id="changeVal">RM 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-row">
+            <button class="btn-checkout" onclick="doCheckout()">
+                <i class="bi bi-check2-circle"></i> CHECKOUT
+            </button>
+            <button class="btn-clear" onclick="clearAll()">
+                <i class="bi bi-trash3"></i> CLEAR
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── RECEIPT MODAL ──────────────────────── -->
+<div class="modal-overlay" id="receiptModal">
+    <div class="modal-box">
+        <div id="receiptPrintArea">
+            <div class="receipt-store">
+                <div class="receipt-store-name">NAM CHONG MINI MARKET</div>
+                <div class="receipt-store-sub">Receipt · 收据</div>
+            </div>
+            <div class="receipt-meta" id="receiptMeta"></div>
+            <div class="receipt-items" id="receiptItems"></div>
+            <div class="receipt-total" id="receiptTotal"></div>
+            <div class="receipt-footer">Thank you! · 谢谢惠顾！</div>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-print" onclick="window.print()">
+                <i class="bi bi-printer"></i> Print
+            </button>
+            <button class="modal-btn modal-btn-done" onclick="finishTx()">
+                <i class="bi bi-check-circle"></i> Done
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let cart = [];
+let currentMode = 'barcode';  // 'barcode' | 'manual'
+let qty = 1;
+let npTarget = null;    // id of currently active numpad input
+let npBuf = '';         // current numpad buffer
+let foundItem = null;   // item resolved from barcode/search
+let barcodeTimer = null;
+
+// Items from server (for client-side search)
+const ALL_ITEMS = {{ items | tojson }};
+// item tuple: [id, name, category, price, stock, image_url, barcode]
+
+// ════════════════════════════════════════
+//  MODE SWITCHING
+// ════════════════════════════════════════
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('btnBarcode').classList.toggle('active', mode === 'barcode');
+    document.getElementById('btnManual').classList.toggle('active', mode === 'manual');
+    document.getElementById('panelBarcode').style.display = mode === 'barcode' ? 'block' : 'none';
+    document.getElementById('panelManual').style.display  = mode === 'manual'  ? 'block' : 'none';
+    foundItem = null;
+    if (mode === 'barcode') {
+        setNpTarget(null);
+        setTimeout(() => document.getElementById('barcodeInput').focus(), 50);
+    } else {
+        setNpTarget('manualPrice');
+    }
+}
+
+// ════════════════════════════════════════
+//  NUMPAD
+// ════════════════════════════════════════
+function setNpTarget(id) {
+    // Remove highlight from all numpad-targeted inputs
+    ['manualPrice', 'customerPays'].forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.classList.remove('np-active');
+    });
+
+    npTarget = id;
+    npBuf = id ? (document.getElementById(id)?.value || '') : '';
+
+    if (id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('np-active');
+        const labels = { manualPrice: 'Price (RM)', customerPays: 'Customer Pays (RM)' };
+        document.getElementById('npLabel').textContent = labels[id] || 'Input';
+    } else {
+        document.getElementById('npLabel').textContent = '—';
+    }
+    refreshNpDisplay();
+}
+
+function npPress(ch) {
+    if (!npTarget) return;
+    if (ch === '.' && npBuf.includes('.')) return;
+    if (npBuf.includes('.') && npBuf.split('.')[1]?.length >= 2) return;
+    if (npBuf === '0' && ch !== '.') {
+        npBuf = ch;
+    } else {
+        npBuf += ch;
+    }
+    applyNpBuf();
+}
+
+function npBack() {
+    if (!npTarget) return;
+    npBuf = npBuf.slice(0, -1);
+    applyNpBuf();
+}
+
+function npClear() {
+    if (!npTarget) return;
+    npBuf = '';
+    applyNpBuf();
+}
+
+function applyNpBuf() {
+    if (!npTarget) return;
+    const el = document.getElementById(npTarget);
+    if (el) el.value = npBuf;
+    refreshNpDisplay();
+    if (npTarget === 'customerPays') recalcChange();
+}
+
+function refreshNpDisplay() {
+    const disp = document.getElementById('npValue');
+    if (!npTarget || npBuf === '') {
+        disp.textContent = npTarget ? '0.00' : '—';
+    } else {
+        disp.textContent = npBuf;
+    }
+}
+
+// ════════════════════════════════════════
+//  BARCODE / SEARCH
+// ════════════════════════════════════════
+function onBarcodeKey(e) {
+    if (e.key === 'Enter') {
+        const v = document.getElementById('barcodeInput').value.trim();
+        if (v) lookupItem(v);
+    }
+}
+
+function onBarcodeType(val) {
+    clearTimeout(barcodeTimer);
+    foundItem = null;
+    if (!val) { document.getElementById('barcodeStatus').innerHTML = ''; return; }
+    barcodeTimer = setTimeout(() => lookupItem(val), 350);
+}
+
+async function lookupItem(query) {
+    // 1. Try barcode API (exact barcode match, then name search in DB)
+    try {
+        const res = await fetch('/api/lookup-barcode/' + encodeURIComponent(query));
+        const data = await res.json();
+        if (data.found) {
+            foundItem = data.item;
+            setStatus('found', `<i class="bi bi-check-circle-fill"></i> ${data.item.name} — RM ${data.item.price.toFixed(2)}`);
+            return;
+        }
+    } catch(e) {}
+
+    // 2. Client-side fuzzy name search
+    const q = query.toLowerCase();
+    const hits = ALL_ITEMS.filter(it => it[1].toLowerCase().includes(q));
+    if (hits.length === 1) {
+        foundItem = { id: hits[0][0], name: hits[0][1], price: hits[0][3], stock: hits[0][4] };
+        setStatus('found', `<i class="bi bi-check-circle-fill"></i> ${foundItem.name} — RM ${foundItem.price.toFixed(2)}`);
+    } else if (hits.length > 1) {
+        foundItem = null;
+        setStatus('multi', `<i class="bi bi-list-ul"></i> ${hits.length} results — be more specific`);
+    } else {
+        foundItem = null;
+        setStatus('notfound', `<i class="bi bi-x-circle-fill"></i> Not found — try Manual Entry`);
+    }
+}
+
+function setStatus(type, html) {
+    const el = document.getElementById('barcodeStatus');
+    const cls = { found: 'status-found', notfound: 'status-notfound', multi: 'status-multi' }[type];
+    el.innerHTML = `<span class="${cls}">${html}</span>`;
+}
+
+// ════════════════════════════════════════
+//  QTY
+// ════════════════════════════════════════
+function adjQty(d) {
+    qty = Math.max(1, qty + d);
+    document.getElementById('qtyVal').textContent = qty;
+}
+
+// ════════════════════════════════════════
+//  ADD ITEM
+// ════════════════════════════════════════
+function addItem() {
+    if (currentMode === 'barcode') {
+        if (!foundItem) {
+            alert('Please scan a barcode or search for an item first.');
+            return;
+        }
+        addToCart(foundItem.id, foundItem.name, foundItem.price, foundItem.stock || 9999, qty, false);
+        // Reset
+        document.getElementById('barcodeInput').value = '';
+        document.getElementById('barcodeStatus').innerHTML = '';
+        foundItem = null;
+        qty = 1; document.getElementById('qtyVal').textContent = 1;
+        document.getElementById('barcodeInput').focus();
+
+    } else {
+        const name  = document.getElementById('manualName').value.trim() || 'Item';
+        const price = parseFloat(document.getElementById('manualPrice').value);
+        if (!price || price <= 0) {
+            alert('Please enter a valid price using the numpad.');
+            setNpTarget('manualPrice');
+            return;
+        }
+        addToCart('manual_' + Date.now(), name, price, 99999, qty, true);
+        // Reset
+        document.getElementById('manualName').value = '';
+        document.getElementById('manualPrice').value = '';
+        npBuf = '';
+        qty = 1; document.getElementById('qtyVal').textContent = 1;
+        setNpTarget('manualPrice');
+    }
+}
+
+// ════════════════════════════════════════
+//  CART
+// ════════════════════════════════════════
+function addToCart(id, name, price, stock, quantity, isManual) {
+    if (!isManual) {
+        const ex = cart.find(it => it.id === id && !it.isManual);
+        if (ex) { ex.quantity += quantity; renderCart(); return; }
+    }
+    cart.push({ id, name, price, quantity, isManual, stock });
+    renderCart();
+}
+
+function removeRow(i) {
+    cart.splice(i, 1);
+    renderCart();
+}
+
+function adjustRow(i, d) {
+    cart[i].quantity += d;
+    if (cart[i].quantity <= 0) cart.splice(i, 1);
+    renderCart();
+}
+
+function renderCart() {
+    const tbody = document.getElementById('cartBody');
+    tbody.innerHTML = '';
+
+    if (cart.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+            <i class="bi bi-cart3"></i>
+            <p>No items yet — scan a barcode or add manually</p>
+        </div></td></tr>`;
+        document.getElementById('badgeCount').textContent = '0 items';
+        document.getElementById('totalDisplay').textContent = 'RM 0.00';
+        document.getElementById('footerInfo').textContent = '0 items · RM 0.00 total';
+        recalcChange();
+        return;
+    }
+
+    let total = 0;
+    cart.forEach((it, i) => {
+        const sub = it.price * it.quantity;
+        total += sub;
+        const tag = it.isManual
+            ? '<span class="item-tag tag-manual">Manual</span>'
+            : '<span class="item-tag tag-scan">Scanned</span>';
+        tbody.innerHTML += `
+        <tr>
+            <td style="color:#94a3b8;font-size:0.85rem">${i+1}</td>
+            <td>
+                <div class="item-name-cell">${escHtml(it.name)}</div>
+                ${tag}
+            </td>
+            <td>
+                <div class="qty-control">
+                    <button class="qty-btn" onclick="adjustRow(${i},-1)">−</button>
+                    <span class="qty-val">${it.quantity}</span>
+                    <button class="qty-btn" onclick="adjustRow(${i},1)">+</button>
+                </div>
+            </td>
+            <td>RM ${it.price.toFixed(2)}</td>
+            <td class="price-col">RM ${sub.toFixed(2)}</td>
+            <td>
+                <button class="btn-remove" onclick="removeRow(${i})">
+                    <i class="bi bi-trash3-fill"></i>
+                </button>
+            </td>
+        </tr>`;
+    });
+
+    const itemCount = cart.reduce((s, it) => s + it.quantity, 0);
+    document.getElementById('badgeCount').textContent = `${cart.length} line${cart.length !== 1 ? 's' : ''} · ${itemCount} pcs`;
+    document.getElementById('totalDisplay').textContent = `RM ${total.toFixed(2)}`;
+    document.getElementById('footerInfo').textContent = `${cart.length} line(s) · ${itemCount} piece(s)`;
+    recalcChange();
+}
+
+function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ════════════════════════════════════════
+//  PAYMENT
+// ════════════════════════════════════════
+function onPayChange() {
+    const m = document.getElementById('payMethod').value;
+    document.getElementById('cashCalc').style.display = m === 'cash' ? 'block' : 'none';
+    if (m !== 'cash' && npTarget === 'customerPays') {
+        setNpTarget(currentMode === 'manual' ? 'manualPrice' : null);
+    }
+}
+
+function quickPay(amount) {
+    document.getElementById('customerPays').value = amount.toFixed(2);
+    npBuf = amount.toFixed(2);
+    if (npTarget === 'customerPays') refreshNpDisplay();
+    recalcChange();
+}
+
+function recalcChange() {
+    const total = cart.reduce((s, it) => s + it.price * it.quantity, 0);
+    const paid = parseFloat(document.getElementById('customerPays').value) || 0;
+    const box = document.getElementById('changeBox');
+    if (paid <= 0) { box.style.display = 'none'; return; }
+
+    const change = paid - total;
+    box.style.display = 'flex';
+    if (change >= 0) {
+        box.className = 'change-box';
+        document.getElementById('changeVal').textContent = `RM ${change.toFixed(2)}`;
+    } else {
+        box.className = 'change-box short';
+        document.getElementById('changeVal').textContent = `Short RM ${Math.abs(change).toFixed(2)}`;
+    }
+}
+
+// ════════════════════════════════════════
+//  CHECKOUT
+// ════════════════════════════════════════
+async function doCheckout() {
+    if (cart.length === 0) { alert('No items in order!'); return; }
+
+    const total = cart.reduce((s, it) => s + it.price * it.quantity, 0);
+    const method = document.getElementById('payMethod').value;
+
+    if (method === 'cash') {
+        const paid = parseFloat(document.getElementById('customerPays').value) || 0;
+        if (paid < total) {
+            alert(`Insufficient payment!\nTotal: RM ${total.toFixed(2)}\nPaid: RM ${paid.toFixed(2)}\nShort: RM ${(total-paid).toFixed(2)}`);
+            setNpTarget('customerPays');
+            return;
+        }
+    }
+
+    try {
+        const res = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: cart, total })
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+
+        const paid = parseFloat(document.getElementById('customerPays').value) || 0;
+        const methodLabel = document.getElementById('payMethod').selectedOptions[0].text;
+        showReceipt(data.sale_id, cart, total, methodLabel, paid, method);
+
+        // Reset
+        cart = [];
+        qty = 1; document.getElementById('qtyVal').textContent = 1;
+        document.getElementById('customerPays').value = '';
+        npBuf = ''; refreshNpDisplay();
+        document.getElementById('changeBox').style.display = 'none';
+        renderCart();
+    } catch(e) {
+        alert('Checkout failed. Please try again.');
+    }
+}
+
+// ════════════════════════════════════════
+//  RECEIPT
+// ════════════════════════════════════════
+function showReceipt(saleId, items, total, methodLabel, paid, method) {
+    const now = new Date();
+    const dt = now.toLocaleString('en-MY', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    document.getElementById('receiptMeta').innerHTML = `
+        <div><span>Receipt #:</span><span><b>${saleId}</b></span></div>
+        <div><span>Date/Time:</span><span>${dt}</span></div>
+        <div><span>Payment:</span><span><b>${methodLabel}</b></span></div>
+    `;
+
+    let itemsHtml = '';
+    items.forEach(it => {
+        itemsHtml += `<div class="receipt-item">
+            <div class="receipt-item-name">${escHtml(it.name)}</div>
+            <div class="receipt-item-sub">
+                <span>${it.quantity} × RM ${it.price.toFixed(2)}</span>
+                <span><b>RM ${(it.price*it.quantity).toFixed(2)}</b></span>
+            </div>
+        </div>`;
+    });
+    document.getElementById('receiptItems').innerHTML = itemsHtml;
+
+    let totalHtml = `<span>TOTAL:</span><span>RM ${total.toFixed(2)}</span>`;
+    if (method === 'cash' && paid > 0) {
+        const change = paid - total;
+        totalHtml += `</div><div class="receipt-total" style="font-size:0.9rem;font-weight:normal;color:#64748b">
+            <span>Paid:</span><span>RM ${paid.toFixed(2)}</span></div>
+            <div class="receipt-total" style="font-size:0.9rem;font-weight:700;color:#16a34a">
+            <span>Change 找零:</span><span>RM ${Math.max(0, change).toFixed(2)}</span>`;
+    }
+    document.getElementById('receiptTotal').innerHTML = totalHtml;
+
+    document.getElementById('receiptModal').classList.add('show');
+}
+
+function finishTx() {
+    document.getElementById('receiptModal').classList.remove('show');
+    setMode(currentMode); // re-focus
+}
+
+// ════════════════════════════════════════
+//  CLEAR ALL
+// ════════════════════════════════════════
+function clearAll() {
+    if (cart.length === 0) return;
+    if (confirm('Clear all items from order?')) {
+        cart = [];
+        qty = 1; document.getElementById('qtyVal').textContent = 1;
+        document.getElementById('customerPays').value = '';
+        npBuf = ''; refreshNpDisplay();
+        document.getElementById('changeBox').style.display = 'none';
+        renderCart();
+    }
+}
+
+// ════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ════════════════════════════════════════
+document.addEventListener('keydown', e => {
+    if (e.key === 'F2') { e.preventDefault(); doCheckout(); }
+    if (e.key === 'F3') { e.preventDefault(); clearAll(); }
+    if (e.key === 'F4') { e.preventDefault(); setMode('barcode'); }
+    if (e.key === 'F5') { e.preventDefault(); setMode('manual'); }
+    if (e.key === 'Escape') {
+        document.getElementById('receiptModal').classList.remove('show');
+    }
+});
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+    setMode('barcode');
+    renderCart();
+});
+</script>
+</body>
+</html>
